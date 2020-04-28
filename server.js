@@ -3,8 +3,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 var db = require("./db/db.json");
-
-var notes = []
+var uniqid = require("uniqid"); 
 
 //Sets up Express
 const app = express();
@@ -35,24 +34,39 @@ app.get("/api/notes", function(req, res) {
 
 //Should receive a new note to save on the request body, add it to the `db.json` file, and then return the new note to the client
 app.post("/api/notes", function(req, res) {
-    var newNote = req.body;
-    notes.push(newNote);
-    var notesJson = JSON.stringify(notes);
-    fs.writeFile("./db/db.json", notesJson, "utf8", err => {
+    var newNotes = req.body;
+    newNotes["id"] = uniqid();
+    fs.readFile("./db/db.json", "utf8", function(err, data) {
         if (err) throw err;
-        fs.readFile("./db/db.json", "utf8",  function (err,data) {
+        var notesJson = JSON.parse(data);
+        notesJson.push(newNotes);
+        console.log(notesJson[0].id)
+        fs.writeFileSync("./db/db.json", JSON.stringify(notesJson), err => {
             if (err) throw err;
-            notes = JSON.parse(data);
-            notes.push(newNote);
-            fs.writeFile("./db/db.json", notesJson, "utf8", function (err) {
-                if (err) throw err;
-            });
         });
     });
 });
 
 //Should receive a query parameter containing the id of a note to delete
-
+app.delete("/api/notes/:id", function(req, res) {
+    fs.readFile("./db/db.json", "utf8", (err, data) => {
+        if (err) throw err;
+        var notesJson = JSON.parse(data);
+        var deleteNote = req.params.id;
+        for (let i = 0; i < notesJson.length; i++) {
+            if (deleteNote === notesJson.id) {
+                notesJson = notesJson.filter(function(notes) {
+                    var savedNotes = notes.id !== id;
+                    fs.writeFile("./db/db.json", JSON.stringify(savedNotes), err => {
+                        if (err) throw err;
+                    });
+                });
+            };
+        };
+        
+    });
+    
+});
 
 //Start the server to begin listening
 app.listen(PORT, function() {
