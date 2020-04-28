@@ -3,7 +3,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 var db = require("./db/db.json");
-var uniqid = require("uniqid"); 
+var uniqid = require("uniqid");
 
 //Sets up Express
 const app = express();
@@ -21,6 +21,9 @@ app.get("/notes", function(req, res) {
 app.get("/", function(req, res) {
     res.sendFile(path.join(__dirname, "./public/index.html"));
 });
+app.get("/api/notes", function(req, res) {
+    res.sendFile(path.join(__dirname, "./db/db.json"))
+})
 
 //Should read the `db.json` file and return all saved notes as JSON
 app.get("/api/notes", function(req, res) {
@@ -54,9 +57,8 @@ app.delete("/api/notes/:id", function(req, res) {
         var notesJson = JSON.parse(data);
         var deleteNote = req.params.id;
         for (let i = 0; i < notesJson.length; i++) {
-            if (deleteNote === notesJson.id) {
+            if (deleteNote === notesJson[i].id) {
                 notesJson = notesJson.filter(function(notes) {
-                    var savedNotes = notes.id !== id;
                     fs.writeFile("./db/db.json", JSON.stringify(savedNotes), err => {
                         if (err) throw err;
                     });
