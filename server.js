@@ -23,7 +23,7 @@ app.get("/", function(req, res) {
 });
 app.get("/api/notes", function(req, res) {
     res.sendFile(path.join(__dirname, "./db/db.json"))
-})
+});
 
 //Should read the `db.json` file and return all saved notes as JSON
 app.get("/api/notes", function(req, res) {
@@ -43,7 +43,6 @@ app.post("/api/notes", function(req, res) {
         if (err) throw err;
         var notesJson = JSON.parse(data);
         notesJson.push(newNotes);
-        console.log(notesJson[0].id)
         fs.writeFileSync("./db/db.json", JSON.stringify(notesJson), err => {
             if (err) throw err;
         });
@@ -52,22 +51,17 @@ app.post("/api/notes", function(req, res) {
 
 //Should receive a query parameter containing the id of a note to delete
 app.delete("/api/notes/:id", function(req, res) {
-    fs.readFile("./db/db.json", "utf8", (err, data) => {
-        if (err) throw err;
+    fs.readFile("./db/db.json", "utf8", function(err, data) {
+        var deletedNote = req.params.id;
         var notesJson = JSON.parse(data);
-        var deleteNote = req.params.id;
-        for (let i = 0; i < notesJson.length; i++) {
-            if (deleteNote === notesJson[i].id) {
-                notesJson = notesJson.filter(function(notes) {
-                    fs.writeFile("./db/db.json", JSON.stringify(savedNotes), err => {
-                        if (err) throw err;
-                    });
-                });
-            };
-        };
-        
+        notesJson = notesJson.filter(savedNotes => {
+            return savedNotes.id !== deletedNote;
+        })
+        fs.writeFile("./db/db.json", JSON.stringify(notesJson), "utf8", function (err) {
+            if (err) throw err;
+            res.json(notesJson);
+        });      
     });
-    
 });
 
 //Start the server to begin listening
